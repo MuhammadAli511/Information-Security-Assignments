@@ -1,6 +1,6 @@
 import os
 import random
-from re import L
+
 def hex_number( count, padded=False ):
     x = random.randint( 0, 16**count )
     hexdig = "%x" % x
@@ -26,6 +26,5 @@ def AESvectors( size, num, padded ):
             f.write( tempStr + "\n" )
 
     f.close()
-
 
 AESvectors( size=32, num=100, padded=False )
