@@ -55,16 +55,14 @@ def keyValidation(key):
 
 
 def keyExpansion():
+    counter = 0
     completeKey = readingKey()
     completeKey = completeKey.lower()
     wKeyList = createChunks(completeKey)
     initialKeyListSize = len(wKeyList)
     if mode == 128:
         rounds = 10
-    elif mode == 192:
-        rounds = 12
-    elif mode == 256:
-        rounds = 14
+        dividend = 4
 
     for i in range(rounds):
         
@@ -77,27 +75,31 @@ def keyExpansion():
         substitutedWord = substitution(rotatedWord)
 
         # Step 3
-        rconWord = rcon[int(currentSize/4)-1]
+
+        rconWord = rcon[counter]
+        counter+=1
+        if counter == 10:
+            counter = 0
         subXorRcon = hex(int(substitutedWord, 16) ^ int(rconWord, 16))[2:]
         initialValue = subXorRcon
 
         # Step 4
-        value1 = hex(int(initialValue, 16) ^ int(wKeyList[currentSize-4], 16))[2:]
+        value1 = hex(int(initialValue, 16) ^ int(wKeyList[currentSize-(dividend-0)], 16))[2:]
         value1 = keyValidation(value1)
         wKeyList.append(value1)
 
         # Step 5
-        value2 = hex(int(value1, 16) ^ int(wKeyList[currentSize-3], 16))[2:]
+        value2 = hex(int(value1, 16) ^ int(wKeyList[currentSize-(dividend-1)], 16))[2:]
         value2 = keyValidation(value2)
         wKeyList.append(value2)
 
         # Step 6
-        value3 = hex(int(value2, 16) ^ int(wKeyList[currentSize-2], 16))[2:]
+        value3 = hex(int(value2, 16) ^ int(wKeyList[currentSize-(dividend-2)], 16))[2:]
         value3 = keyValidation(value3)
         wKeyList.append(value3)
 
         # Step 7
-        value4 = hex(int(value3, 16) ^ int(wKeyList[currentSize-1], 16))[2:]
+        value4 = hex(int(value3, 16) ^ int(wKeyList[currentSize-(dividend-3)], 16))[2:]
         value4 = keyValidation(value4)
         wKeyList.append(value4)
 
@@ -109,12 +111,6 @@ def keySeperation(wKeyList1):
         if mode == 128:
             if i % 4 == 0:
                 tempKeyList.append(wKeyList1[i] + wKeyList1[i+1] + wKeyList1[i+2] + wKeyList1[i+3])
-        elif mode == 192:
-            if i % 6 == 0:
-                tempKeyList.append(wKeyList1[i] + wKeyList1[i+1] + wKeyList1[i+2] + wKeyList1[i+3] + wKeyList1[i+4] + wKeyList1[i+5])
-        elif mode == 256:
-            if i % 8 == 0:
-                tempKeyList.append(wKeyList1[i] + wKeyList1[i+1] + wKeyList1[i+2] + wKeyList1[i+3] + wKeyList1[i+4] + wKeyList1[i+5] + wKeyList1[i+6] + wKeyList1[i+7])
     return tempKeyList
 
 wKeyList1 = keyExpansion()
