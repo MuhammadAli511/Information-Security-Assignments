@@ -1,4 +1,9 @@
+import numpy as np
+
 mode = 128
+if mode == 128:
+        rounds = 10
+        dividend = 4
 
 rijndaelSbox = [
     ['63', '7c', '77', '7b', 'f2', '6b', '6f', 'c5', '30', '01', '67', '2b', 'fe', 'd7', 'ab', '76'],
@@ -24,6 +29,8 @@ sBoxMappingRow = {"00": 0, "10": 1, "20": 2, "30": 3, "40": 4, "50": 5, "60": 6,
 
 rcon = ['01000000', '02000000', '04000000', '08000000', '10000000', '20000000', '40000000', '80000000', '1b000000', '36000000']
 
+constMatrix = np.array([[2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2]])
+
 def readingKey():
     f = open("testKeyFile.key", "r")
     key = f.read()
@@ -36,8 +43,8 @@ def createChunks(key):
         chunkList.append(key[i:i+8])
     return chunkList
 
-def rotWord(word):
-    word = word[2:] + word[:2]
+def rotWord(word,num):
+    word = word[num:] + word[:num]
     return word
 
 def substitution(word):
@@ -60,16 +67,14 @@ def keyExpansion():
     completeKey = completeKey.lower()
     wKeyList = createChunks(completeKey)
     initialKeyListSize = len(wKeyList)
-    if mode == 128:
-        rounds = 10
-        dividend = 4
+    
 
     for i in range(rounds):
         
         currentSize = len(wKeyList)
 
         # Step 1
-        rotatedWord = rotWord(wKeyList[currentSize-1])
+        rotatedWord = rotWord(wKeyList[currentSize-1],2)
 
         # Step 2
         substitutedWord = substitution(rotatedWord)
@@ -116,4 +121,64 @@ def keySeperation(wKeyList1):
 wKeyList1 = keyExpansion()
 completeKeyList = keySeperation(wKeyList1)
 
-print(completeKeyList)
+def readingInput():
+    f = open("testInputFile.pt", "r")
+    input = f.read()
+    f.close()
+    return input
+
+def conversion(plainTextArr):
+    newPlainText = []
+    tempStr1 = plainTextArr[0][0:2] + plainTextArr[1][0:2] + plainTextArr[2][0:2] + plainTextArr[3][0:2]
+    tempStr2 = plainTextArr[0][2:4] + plainTextArr[1][2:4] + plainTextArr[2][2:4] + plainTextArr[3][2:4]
+    tempStr3 = plainTextArr[0][4:6] + plainTextArr[1][4:6] + plainTextArr[2][4:6] + plainTextArr[3][4:6]
+    tempStr4 = plainTextArr[0][6:8] + plainTextArr[1][6:8] + plainTextArr[2][6:8] + plainTextArr[3][6:8]
+    newPlainText.append(tempStr1)
+    newPlainText.append(tempStr2)
+    newPlainText.append(tempStr3)
+    newPlainText.append(tempStr4)
+    return newPlainText
+
+def multiply(value1, value2):
+
+    return
+
+def mixColumn(textArr):
+
+    return textArr
+
+
+def AES():
+    plainText = readingInput()
+    plainText = plainText.lower()
+
+    # Round 0
+    keyArr = createChunks(completeKeyList[0])
+    plainTextArr = createChunks(plainText)
+
+    for i in range(len(plainTextArr)):
+        plainTextArr[i] = hex(int(plainTextArr[i], 16) ^ int(keyArr[i], 16))[2:]
+        plainTextArr[i] = keyValidation(plainTextArr[i])
+
+    for i in range(1):
+        # Step 1
+        for i in range(len(plainTextArr)):
+            plainTextArr[i] = substitution(plainTextArr[i])
+        
+        # Step 2
+        newPlainTextArr = conversion(plainTextArr)
+        newPlainTextArr[1] = rotWord(newPlainTextArr[1],2)
+        newPlainTextArr[2] = rotWord(newPlainTextArr[2],4)
+        newPlainTextArr[3] = rotWord(newPlainTextArr[3],6)
+
+        # Step 3
+        #if i != rounds-1:
+        newPlainTextArr = conversion(newPlainTextArr)
+        updatedPlainText = mixColumn(newPlainTextArr)
+
+        # Step 4
+        keyArr = createChunks(completeKeyList[i+1])
+        plainTextArr = createChunks(updatedPlainText)
+    
+
+AES()
